@@ -32,11 +32,14 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+
+import org.checkerframework.checker.units.qual.C;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.openftc.revextensions2.ExpansionHubEx;
+import org.openftc.revextensions2.ExpansionHubMotor;
 
 /**
  * This file illustrates the concept of driving a path based on encoder counts.
@@ -65,9 +68,9 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Test2")
+@Autonomous(name="Data")
 //@Disabled
-public class Test1 extends LinearOpMode {
+public class Data extends LinearOpMode {
 
     static final double     COUNTS_PER_MOTOR_REV    = 28 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 60.0 ;     // This is < 1.0 if geared UP
@@ -104,104 +107,25 @@ public class Test1 extends LinearOpMode {
 
         touch = hardwareMap.touchSensor.get("touch");
 
-        telemetry.addData("Path0",  "Starting at %7d :%7d :%7d",
-                l_arm.getCurrentPosition(),
-                u_arm.getCurrentPosition(),
-                s_arm.getCurrentPosition());
-        telemetry.update();
-
-        hand.setPosition(0.5);
+        DcMotorEx motor1 = hardwareMap.get(DcMotorEx.class, "u_arm");
 
         waitForStart();
 
-        double speed = 0.6;
+        /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  >  */
 
         while(opModeIsActive()) {
-            telemetry.addData("Path0",  "Starting at %7d :%7d :%7d",
-                    l_arm.getCurrentPosition(),
-                    u_arm.getCurrentPosition(),
-                    s_arm.getCurrentPosition());
+            telemetry.addData("u_arm Current", motor1.getCurrent(CurrentUnit.AMPS));
             telemetry.update();
+
+            double speed = 0.2;
 
             if (touch.isPressed() == true) {
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 u_arm.setPower(Math.abs(speed));
-
-                newl_armTarget = l_arm.getCurrentPosition();
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                sleep(1000);
-
-                newl_armTarget = l_arm.getCurrentPosition() + (int) (90 * COUNTS_PER_DEGREE);
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                sleep(1000);   // optional pause after each move
-
-                newl_armTarget = l_arm.getCurrentPosition();
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(speed));
-
-
-
-                news_armTarget = s_arm.getCurrentPosition() + (int) (180 * COUNTS_PER_DEGREE);
-                s_arm.setTargetPosition(news_armTarget);
-                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(0.2));
-
-                sleep(1000);   // optional pause after each move
-
-                hand.setPosition(1.0);
-
-                sleep(5000);
-
-                hand.setPosition(0.5);
-
-                news_armTarget = s_arm.getCurrentPosition() + (int) (-180 * COUNTS_PER_DEGREE);
-                s_arm.setTargetPosition(news_armTarget);
-                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(speed));
-
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(speed));
-
-                sleep(1000);   // optional pause after each move
-
-                newl_armTarget = l_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                sleep(1000);   // optional pause after each move
-
-                newl_armTarget = l_arm.getCurrentPosition();
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (89 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(0.2));
-
-                sleep(1000);   // optional pause after each move////
             }
-            else {
 
-            }
         }
     }
 }
