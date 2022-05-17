@@ -35,40 +35,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
 
 /**
- * This file illustrates the concept of driving a path based on encoder counts.
- * It uses the common Pushbot hardware class to define the drive on the robot.
- * The code is structured as a LinearOpMode
- *
- * The code REQUIRES that you DO have encoders on the wheels,
- *   otherwise you would use: PushbotAutoDriveByTime;
- *
- *  This code ALSO requires that the drive Motors have been configured such that a positive
- *  power command moves them forwards, and causes the encoders to count UP.
- *
- *   The desired path in this example is:
- *   - Drive forward for 48 inches
- *   - Spin right for 12 Inches
- *   - Drive Backwards for 24 inches
- *   - Stop and close the claw.
- *
- *  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
- *  that performs the actual movement.
- *  This methods assumes that each movement is relative to the last stopping place.
- *  There are other ways to perform encoder based moves, but this method is probably the simplest.
- *  This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
+ * This file tests a variety of data collection and functions for the GS Robot Arm
  *
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Data")
+@Autonomous(name="Data1")
 //@Disabled
 public class Data extends LinearOpMode {
 
@@ -82,9 +64,10 @@ public class Data extends LinearOpMode {
 
     TouchSensor touch;
 
+    ElapsedTime     runtime = new ElapsedTime();
+
     @Override
     public void runOpMode() {
-
 
         // Initialize the drive system variables.
         telemetry.addData("Status", "Resetting Encoders");    //
@@ -111,21 +94,47 @@ public class Data extends LinearOpMode {
 
         waitForStart();
 
-        /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  >  */
+        motor1.setCurrentAlert(10, CurrentUnit.AMPS);
+        /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
 
         while(opModeIsActive()) {
             telemetry.addData("u_arm Current", motor1.getCurrent(CurrentUnit.AMPS));
             telemetry.update();
 
-            double speed = 0.2;
+            l_arm.setPower(0);
+            u_arm.setPower(0);
+            s_arm.setPower(0);
 
+            double speed = 0.4;
             if (touch.isPressed() == true) {
+                runtime.reset();
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 u_arm.setPower(Math.abs(speed));
-            }
 
+                newl_armTarget = l_arm.getCurrentPosition();
+                l_arm.setTargetPosition(newl_armTarget);
+                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                l_arm.setPower(Math.abs(speed));
+
+                telemetry.addData("u_arm Current", motor1.getCurrent(CurrentUnit.AMPS));
+                telemetry.update();
+
+                sleep(1000);
+
+                //Test code for Motor resistance safety system
+                //goal is to shut off arm power once current is above set limit
+                if (motor1.isOverCurrent() == true) {
+                    motor1.setMotorDisable();
+                    requestOpModeStop();
+                }
+                newl_armTarget = l_arm.getCurrentPosition() + (int) (90 * COUNTS_PER_DEGREE);
+                l_arm.setTargetPosition(newl_armTarget);
+                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                l_arm.setPower(Math.abs(speed));
+
+            }
         }
     }
 }
