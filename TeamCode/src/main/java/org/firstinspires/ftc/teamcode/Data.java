@@ -90,7 +90,7 @@ public class Data extends LinearOpMode {
 
         touch = hardwareMap.touchSensor.get("touch");
 
-        DcMotorEx motor1 = hardwareMap.get(DcMotorEx.class, "u_arm");
+        DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
 
         waitForStart();
 
@@ -98,7 +98,7 @@ public class Data extends LinearOpMode {
         /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
 
         while(opModeIsActive()) {
-            telemetry.addData("u_arm Current", motor1.getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
             telemetry.update();
 
             l_arm.setPower(0);
@@ -107,28 +107,32 @@ public class Data extends LinearOpMode {
 
             double speed = 0.4;
             if (touch.isPressed() == true) {
-                runtime.reset();
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(speed));
+                //Phase One rotate upper arm out with lower arm locked
 
                 newl_armTarget = l_arm.getCurrentPosition();
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
-                telemetry.addData("u_arm Current", motor1.getCurrent(CurrentUnit.AMPS));
+                newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
+                u_arm.setTargetPosition(newu_armTarget);
+                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                u_arm.setPower(Math.abs(speed));
+                while(u_arm.isBusy() && opModeIsActive()) {
+                    if (u_arm1.isOverCurrent() == true) {
+                        u_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
+
+
+                telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
                 telemetry.update();
 
                 sleep(1000);
 
                 //Test code for Motor resistance safety system
                 //goal is to shut off arm power once current is above set limit
-                if (motor1.isOverCurrent() == true) {
-                    motor1.setMotorDisable();
-                    requestOpModeStop();
-                }
                 newl_armTarget = l_arm.getCurrentPosition() + (int) (90 * COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
