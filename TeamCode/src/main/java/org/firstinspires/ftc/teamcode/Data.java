@@ -94,7 +94,7 @@ public class Data extends LinearOpMode {
 
         waitForStart();
 
-        motor1.setCurrentAlert(10, CurrentUnit.AMPS);
+        u_arm1.setCurrentAlert(6, CurrentUnit.AMPS);
         /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
 
         while(opModeIsActive()) {
@@ -138,6 +138,7 @@ public class Data extends LinearOpMode {
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
+                sleep(10000);
             }
         }
     }

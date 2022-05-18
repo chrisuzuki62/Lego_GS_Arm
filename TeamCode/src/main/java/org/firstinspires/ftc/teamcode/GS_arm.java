@@ -35,11 +35,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This file will drive the entire Interactive Lego Girl Scout Robot Arm
@@ -65,20 +67,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Test2")
+@Autonomous(name="GS Arm")
 //@Disabled
-public class Test1 extends LinearOpMode {
+public class GS_arm extends LinearOpMode {
 
     //Values that converts encoder ticks to degrees
-    static final double     COUNTS_PER_MOTOR_REV    = 28 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 60.0 ;     // This is < 1.0 if geared UP
-    static final double     COUNTS_PER_DEGREE         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
+    static final double COUNTS_PER_MOTOR_REV = 28;    // eg: TETRIX Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION = 60.0;     // This is < 1.0 if geared UP
+    static final double COUNTS_PER_DEGREE = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
     // names the Motors, Servos, and Sensors
     DcMotor l_arm = null;
     DcMotor u_arm = null;
     DcMotor s_arm = null;
     Servo hand = null;
     TouchSensor touch;
+    DistanceSensor sensorRange1;
 
     @Override
     public void runOpMode() {
@@ -113,6 +116,12 @@ public class Test1 extends LinearOpMode {
         DcMotorEx l_arm1 = hardwareMap.get(DcMotorEx.class, "l_arm");
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
         DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
+        sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
+        // Setting Safety limits on Motors
+        /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
+        l_arm1.setCurrentAlert(3.5, CurrentUnit.AMPS);
+        u_arm1.setCurrentAlert(6.5, CurrentUnit.AMPS);
+        s_arm1.setCurrentAlert(4, CurrentUnit.AMPS);
 
         //Setting Servo to 0 position
         hand.setPosition(0.5);
@@ -124,26 +133,17 @@ public class Test1 extends LinearOpMode {
         double speed = 0.6;
 
         //While the code is running
-        while(opModeIsActive()) {
+        while (opModeIsActive()) {
             // Prints the inital outputs of current to the app screen
             telemetry.addData("l_arm Current", l_arm1.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("s_arm Current", s_arm1.getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("distance", sensorRange1.getDistance(DistanceUnit.CM));
             telemetry.update();
 
             //when the touch sensor is pushed
-            if (touch.isPressed() == true) {
+            if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50 ) {
 
-                //First Phase the upper arm swings out 90 degrees
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(speed));
-
-                telemetry.addData("l_arm Current", l_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.addData("s_arm Current", s_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.update();
 
                 //The lower arm holds its position during the first phase
                 newl_armTarget = l_arm.getCurrentPosition();
@@ -151,10 +151,26 @@ public class Test1 extends LinearOpMode {
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
-                //Test code for motor resistance safety system
-                if (u_arm1.getCurrent(CurrentUnit.AMPS) > 6.5 || l_arm1.getCurrent(CurrentUnit.AMPS) > 3.5 || s_arm1.getCurrent(CurrentUnit.AMPS) > 4) {
-                    requestOpModeStop();
+                //First Phase the upper arm swings out 90 degrees
+                newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
+                u_arm.setTargetPosition(newu_armTarget);
+                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                u_arm.setPower(Math.abs(speed));
+
+                // Saftey System for Phase one
+                while (u_arm.isBusy() && opModeIsActive()) {
+                    if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+                        u_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
                 }
+
+                telemetry.addData("l_arm Current", l_arm1.getCurrent(CurrentUnit.AMPS));
+                telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
+                telemetry.addData("s_arm Current", s_arm1.getCurrent(CurrentUnit.AMPS));
+                telemetry.update();
+
+
                 //wait 1 sec
                 sleep(1000);
 
@@ -164,6 +180,14 @@ public class Test1 extends LinearOpMode {
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
+                // Saftey System for Phase two
+                while (l_arm.isBusy() && opModeIsActive()) {
+                    if (l_arm1.isOverCurrent() == true) {
+                        l_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
+
                 sleep(1000);   // optional pause after each move
 
                 // hold this new position
@@ -172,17 +196,35 @@ public class Test1 extends LinearOpMode {
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
+                //Third Phase rotates the shoulder 180 degrees
+                news_armTarget = s_arm.getCurrentPosition() + (int) (180 * COUNTS_PER_DEGREE);
+                s_arm.setTargetPosition(news_armTarget);
+                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                s_arm.setPower(Math.abs(0.2));
+
+                // Saftey System for Phase three
+                while (s_arm.isBusy() && opModeIsActive()) {
+                    if (s_arm1.isOverCurrent() == true) {
+                        s_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
+
                 // raise the upper arm abit since it sags on rotation of the shoulder
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 u_arm.setPower(Math.abs(speed));
 
-                //Third Phase rotates the shoulder 180 degrees
-                news_armTarget = s_arm.getCurrentPosition() + (int) (180 * COUNTS_PER_DEGREE);
-                s_arm.setTargetPosition(news_armTarget);
-                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(0.2));
+                // Saftey System for Phase one
+                while (u_arm.isBusy() && opModeIsActive()) {
+                    u_arm1.setCurrentAlert(10, CurrentUnit.AMPS);
+                    if (u_arm1.isOverCurrent() == true) {
+                        u_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
+
 
                 sleep(1000);   // optional pause after each move
 
@@ -195,15 +237,31 @@ public class Test1 extends LinearOpMode {
                 hand.setPosition(0.5);
 
                 //Undoes Third Phase
-                news_armTarget = s_arm.getCurrentPosition() + (int) (-180 * COUNTS_PER_DEGREE);
+                news_armTarget = s_arm.getCurrentPosition() + (int) (-176 * COUNTS_PER_DEGREE);
                 s_arm.setTargetPosition(news_armTarget);
                 s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 s_arm.setPower(Math.abs(speed));
+
+                // Saftey System for Phase three
+                while (s_arm.isBusy() && opModeIsActive()) {
+                    if (s_arm1.isOverCurrent() == true) {
+                        s_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
 
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 u_arm.setPower(Math.abs(speed));
+
+                // Saftey System for Phase three
+                while (u_arm.isBusy() && opModeIsActive()) {
+                    if (u_arm1.isOverCurrent() == true) {
+                        u_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
 
                 sleep(1000);   // optional pause after each move
 
@@ -212,6 +270,14 @@ public class Test1 extends LinearOpMode {
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
+
+                // Saftey System for Phase two
+                while (l_arm.isBusy() && opModeIsActive()) {
+                    if (l_arm1.isOverCurrent() == true) {
+                        l_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
 
                 sleep(1000);   // optional pause after each move
 
@@ -224,14 +290,21 @@ public class Test1 extends LinearOpMode {
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (89 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(0.2));
+                u_arm.setPower(Math.abs(0.3));
+
+                // Saftey System for Phase one
+                u_arm1.setCurrentAlert(8, CurrentUnit.AMPS);
+                while (u_arm.isBusy() && opModeIsActive()) {
+                    if (u_arm1.isOverCurrent() == true) {
+                        u_arm1.setMotorDisable();
+                        requestOpModeStop();
+                    }
+                }
 
                 sleep(1000);   // optional pause after each move////
-            }
-            else {
-
             }
 
         }
     }
 }
+
