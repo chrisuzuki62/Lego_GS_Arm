@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -61,7 +62,8 @@ public class Data extends LinearOpMode {
     DcMotor u_arm = null;
     DcMotor s_arm = null;
     Servo hand = null;
-
+    DigitalChannel headin;
+    DigitalChannel headout;
     TouchSensor touch;
 
     ElapsedTime     runtime = new ElapsedTime();
@@ -80,10 +82,15 @@ public class Data extends LinearOpMode {
         u_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         s_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hand = hardwareMap.servo.get("hand");
+        headin = hardwareMap.digitalChannel.get("headin");
+        headin = hardwareMap.digitalChannel.get("headout");
 
         l_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         u_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         s_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        headin.setMode(DigitalChannel.Mode.INPUT);
+        headin.setMode(DigitalChannel.Mode.OUTPUT);
+
         int newl_armTarget;
         int newu_armTarget;
         int news_armTarget;
@@ -106,7 +113,7 @@ public class Data extends LinearOpMode {
             s_arm.setPower(0);
 
             double speed = 0.4;
-            if (touch.isPressed() == true) {
+            if (touch.isPressed() == true || headin.getState()==true) {
                 //Phase One rotate upper arm out with lower arm locked
 
                 newl_armTarget = l_arm.getCurrentPosition();
@@ -121,6 +128,7 @@ public class Data extends LinearOpMode {
                 while(u_arm.isBusy() && opModeIsActive()) {
                     if (u_arm1.isOverCurrent() == true) {
                         u_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }

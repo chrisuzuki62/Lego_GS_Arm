@@ -82,6 +82,7 @@ public class GS_arm extends LinearOpMode {
     Servo hand = null;
     TouchSensor touch;
     DistanceSensor sensorRange1;
+    DigitalChannel head;
 
     @Override
     public void runOpMode() {
@@ -97,6 +98,7 @@ public class GS_arm extends LinearOpMode {
         s_arm = hardwareMap.dcMotor.get("s_arm");
         hand = hardwareMap.servo.get("hand");
         touch = hardwareMap.touchSensor.get("touch");
+        head = hardwareMap.digitalChannel.get("head");
 
         // Setting the mode on each hardware device
         l_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -106,6 +108,8 @@ public class GS_arm extends LinearOpMode {
         l_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         u_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         s_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        head.setMode(DigitalChannel.Mode.INPUT);
 
         // Initializing the variables used to define the target location of each arm system
         int newl_armTarget;
