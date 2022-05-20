@@ -34,12 +34,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
@@ -65,6 +67,7 @@ public class Data extends LinearOpMode {
     DigitalChannel headin;
     DigitalChannel headout;
     TouchSensor touch;
+    DistanceSensor sensorRange1;
 
     ElapsedTime     runtime = new ElapsedTime();
 
@@ -83,13 +86,13 @@ public class Data extends LinearOpMode {
         s_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hand = hardwareMap.servo.get("hand");
         headin = hardwareMap.digitalChannel.get("headin");
-        headin = hardwareMap.digitalChannel.get("headout");
+        headout = hardwareMap.digitalChannel.get("headout");
 
         l_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         u_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         s_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         headin.setMode(DigitalChannel.Mode.INPUT);
-        headin.setMode(DigitalChannel.Mode.OUTPUT);
+        headout.setMode(DigitalChannel.Mode.OUTPUT);
 
         int newl_armTarget;
         int newu_armTarget;
@@ -97,39 +100,48 @@ public class Data extends LinearOpMode {
 
         touch = hardwareMap.touchSensor.get("touch");
 
+        DcMotorEx l_arm1 = hardwareMap.get(DcMotorEx.class, "l_arm");
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
+        DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
+        sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
+
 
         waitForStart();
 
-        u_arm1.setCurrentAlert(6, CurrentUnit.AMPS);
+        l_arm1.setCurrentAlert(3.5, CurrentUnit.AMPS);
+        u_arm1.setCurrentAlert(6.5, CurrentUnit.AMPS);
+        s_arm1.setCurrentAlert(4.5, CurrentUnit.AMPS);
+
         /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
 
+        headin.setState(true);
+        headout.setState(true);
+
+
         while(opModeIsActive()) {
-            telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("headin boolean", headin.getState());
             telemetry.update();
 
             l_arm.setPower(0);
             u_arm.setPower(0);
             s_arm.setPower(0);
 
+
             double speed = 0.4;
-            if (touch.isPressed() == true || headin.getState()==true) {
+            if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                 //Phase One rotate upper arm out with lower arm locked
 
-                newl_armTarget = l_arm.getCurrentPosition();
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-
-                newu_armTarget = u_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
-                u_arm.setTargetPosition(newu_armTarget);
-                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(speed));
-                while(u_arm.isBusy() && opModeIsActive()) {
-                    if (u_arm1.isOverCurrent() == true) {
-                        u_arm1.setMotorDisable();
-                        headout.setState(true);
-                        requestOpModeStop();
+                newu_armTarget = s_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
+                s_arm.setTargetPosition(newu_armTarget);
+                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                s_arm.setPower(Math.abs(speed));
+                while(s_arm.isBusy() && opModeIsActive()) {
+                    if (s_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                        runtime.reset();
+                        s_arm1.setMotorDisable();
+                        headout.setState(false);
+                        telemetry.addData("milliseconds", runtime.milliseconds());
+                        telemetry.update();
                     }
                 }
 
@@ -141,10 +153,6 @@ public class Data extends LinearOpMode {
 
                 //Test code for Motor resistance safety system
                 //goal is to shut off arm power once current is above set limit
-                newl_armTarget = l_arm.getCurrentPosition() + (int) (90 * COUNTS_PER_DEGREE);
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
 
                 sleep(10000);
             }

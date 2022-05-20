@@ -82,7 +82,8 @@ public class GS_arm extends LinearOpMode {
     Servo hand = null;
     TouchSensor touch;
     DistanceSensor sensorRange1;
-    DigitalChannel head;
+    DigitalChannel headin;
+    DigitalChannel headout;
 
     @Override
     public void runOpMode() {
@@ -98,7 +99,8 @@ public class GS_arm extends LinearOpMode {
         s_arm = hardwareMap.dcMotor.get("s_arm");
         hand = hardwareMap.servo.get("hand");
         touch = hardwareMap.touchSensor.get("touch");
-        head = hardwareMap.digitalChannel.get("head");
+        headin = hardwareMap.digitalChannel.get("headin");
+        headout = hardwareMap.digitalChannel.get("headout");
 
         // Setting the mode on each hardware device
         l_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -109,7 +111,8 @@ public class GS_arm extends LinearOpMode {
         u_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         s_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        head.setMode(DigitalChannel.Mode.INPUT);
+        headin.setMode(DigitalChannel.Mode.INPUT);
+        headout.setMode(DigitalChannel.Mode.OUTPUT);
 
         // Initializing the variables used to define the target location of each arm system
         int newl_armTarget;
@@ -119,13 +122,15 @@ public class GS_arm extends LinearOpMode {
         // Defining the Motors again using DcMotorEx for more data and control over DcMotors
         DcMotorEx l_arm1 = hardwareMap.get(DcMotorEx.class, "l_arm");
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
-        DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
+        DcMotorEx
+                s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
         sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
+
         // Setting Safety limits on Motors
-        /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
+        /* l_arm > 3.5 AMPS    u_arm > 6.5 AMPS    s_arm  > 4.5 */
         l_arm1.setCurrentAlert(3.5, CurrentUnit.AMPS);
         u_arm1.setCurrentAlert(6.5, CurrentUnit.AMPS);
-        s_arm1.setCurrentAlert(4, CurrentUnit.AMPS);
+        s_arm1.setCurrentAlert(4.5, CurrentUnit.AMPS);
 
         //Setting Servo to 0 position
         hand.setPosition(0.5);
@@ -139,14 +144,14 @@ public class GS_arm extends LinearOpMode {
         //While the code is running
         while (opModeIsActive()) {
             // Prints the inital outputs of current to the app screen
-            telemetry.addData("l_arm Current", l_arm1.getCurrent(CurrentUnit.AMPS));
-            telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
-            telemetry.addData("s_arm Current", s_arm1.getCurrent(CurrentUnit.AMPS));
-            telemetry.addData("distance", sensorRange1.getDistance(DistanceUnit.CM));
+            if (sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+                telemetry.addData("Clear to RUN", 0);
+            }else
+                telemetry.addData("Obstruction Detected", 0);
             telemetry.update();
 
             //when the touch sensor is pushed
-            if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50 ) {
+            if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50 || headin.getState()==false && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
 
 
                 //The lower arm holds its position during the first phase
@@ -163,7 +168,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase one
                 while (u_arm.isBusy() && opModeIsActive()) {
-                    if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+                    if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -201,7 +206,7 @@ public class GS_arm extends LinearOpMode {
                 l_arm.setPower(Math.abs(speed));
 
                 //Third Phase rotates the shoulder 180 degrees
-                news_armTarget = s_arm.getCurrentPosition() + (int) (180 * COUNTS_PER_DEGREE);
+                news_armTarget = s_arm.getCurrentPosition() + (int) (176 * COUNTS_PER_DEGREE);
                 s_arm.setTargetPosition(news_armTarget);
                 s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 s_arm.setPower(Math.abs(0.2));
@@ -270,6 +275,11 @@ public class GS_arm extends LinearOpMode {
                 sleep(1000);   // optional pause after each move
 
                 //Undoes Phase two
+                newu_armTarget = u_arm.getCurrentPosition();
+                u_arm.setTargetPosition(newu_armTarget);
+                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                u_arm.setPower(Math.abs(speed));
+
                 newl_armTarget = l_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
