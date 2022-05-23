@@ -122,8 +122,7 @@ public class GS_arm extends LinearOpMode {
         // Defining the Motors again using DcMotorEx for more data and control over DcMotors
         DcMotorEx l_arm1 = hardwareMap.get(DcMotorEx.class, "l_arm");
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
-        DcMotorEx
-                s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
+        DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
         sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
 
         // Setting Safety limits on Motors
@@ -147,8 +146,24 @@ public class GS_arm extends LinearOpMode {
             if (sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                 telemetry.addData("Clear to RUN", 0);
             }else
-                telemetry.addData("Obstruction Detected", 0);
+                telemetry.addData("Obstruction Detected", 1);
             telemetry.update();
+
+            //Reset Arm Position
+            newl_armTarget = 0;
+            l_arm.setTargetPosition(newl_armTarget);
+            l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            l_arm.setPower(Math.abs(speed));
+
+            newu_armTarget = 0;
+            u_arm.setTargetPosition(newu_armTarget);
+            u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            u_arm.setPower(Math.abs(speed));
+
+            news_armTarget = 0;
+            s_arm.setTargetPosition(news_armTarget);
+            s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            s_arm.setPower(Math.abs(0.2));
 
             //when the touch sensor is pushed
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50 || headin.getState()==false && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
@@ -174,10 +189,6 @@ public class GS_arm extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("l_arm Current", l_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.addData("s_arm Current", s_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.update();
 
 
                 //wait 1 sec
@@ -191,7 +202,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase two
                 while (l_arm.isBusy() && opModeIsActive()) {
-                    if (l_arm1.isOverCurrent() == true) {
+                    if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -205,6 +216,11 @@ public class GS_arm extends LinearOpMode {
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
+                newu_armTarget = u_arm.getCurrentPosition();
+                u_arm.setTargetPosition(newu_armTarget);
+                u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                u_arm.setPower(Math.abs(speed));
+
                 //Third Phase rotates the shoulder 180 degrees
                 news_armTarget = s_arm.getCurrentPosition() + (int) (176 * COUNTS_PER_DEGREE);
                 s_arm.setTargetPosition(news_armTarget);
@@ -213,7 +229,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase three
                 while (s_arm.isBusy() && opModeIsActive()) {
-                    if (s_arm1.isOverCurrent() == true) {
+                    if (s_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -228,7 +244,7 @@ public class GS_arm extends LinearOpMode {
                 // Saftey System for Phase one
                 while (u_arm.isBusy() && opModeIsActive()) {
                     u_arm1.setCurrentAlert(10, CurrentUnit.AMPS);
-                    if (u_arm1.isOverCurrent() == true) {
+                    if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -253,7 +269,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase three
                 while (s_arm.isBusy() && opModeIsActive()) {
-                    if (s_arm1.isOverCurrent() == true) {
+                    if (s_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -266,7 +282,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase three
                 while (u_arm.isBusy() && opModeIsActive()) {
-                    if (u_arm1.isOverCurrent() == true) {
+                    if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -287,7 +303,7 @@ public class GS_arm extends LinearOpMode {
 
                 // Saftey System for Phase two
                 while (l_arm.isBusy() && opModeIsActive()) {
-                    if (l_arm1.isOverCurrent() == true) {
+                    if (l_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
@@ -309,7 +325,7 @@ public class GS_arm extends LinearOpMode {
                 // Saftey System for Phase one
                 u_arm1.setCurrentAlert(8, CurrentUnit.AMPS);
                 while (u_arm.isBusy() && opModeIsActive()) {
-                    if (u_arm1.isOverCurrent() == true) {
+                    if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
