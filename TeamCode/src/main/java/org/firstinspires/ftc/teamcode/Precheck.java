@@ -65,7 +65,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="GS Arm")
+@Autonomous(name="Precheck")
 //@Disabled
 public class Precheck extends LinearOpMode {
 
@@ -143,7 +143,7 @@ public class Precheck extends LinearOpMode {
             // Prints the inital outputs of current to the app screen
             if (sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                 telemetry.addData("Clear to RUN", 0);
-            }else
+            } else
                 telemetry.addData("Obstruction Detected", 1);
             telemetry.update();
 
@@ -168,7 +168,7 @@ public class Precheck extends LinearOpMode {
 
 
                 //The lower arm direction test
-                newl_armTarget = l_arm.getCurrentPosition()+ (int) (-30 * COUNTS_PER_DEGREE);
+                newl_armTarget = l_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
@@ -182,7 +182,7 @@ public class Precheck extends LinearOpMode {
 
                 while (opModeIsActive()) {
 
-                    if (touch.isPressed() == true  && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+                    if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                         //The upper arm direction test
                         newu_armTarget = u_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
                         u_arm.setTargetPosition(newu_armTarget);
@@ -215,8 +215,11 @@ public class Precheck extends LinearOpMode {
                         }
                     }
                 }
-
+            }
         }
     }
 }
+
+
+
 

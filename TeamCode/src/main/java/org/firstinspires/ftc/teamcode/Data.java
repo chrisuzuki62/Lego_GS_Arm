@@ -114,18 +114,18 @@ public class Data extends LinearOpMode {
 
         /* l_arm > 3 AMPS    u_arm > 6 AMPS    s_arm  > 4 */
 
-        headin.setState(true);
-        headout.setState(true);
-
 
         while(opModeIsActive()) {
             telemetry.addData("headin boolean", headin.getState());
+            telemetry.addData("headout boolean", headout.getState());
             telemetry.update();
 
             l_arm.setPower(0);
             u_arm.setPower(0);
             s_arm.setPower(0);
 
+            headin.setState(true); // Low input
+            headout.setState(true); // High Output
 
             double speed = 0.4;
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {

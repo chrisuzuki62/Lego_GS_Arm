@@ -140,6 +140,8 @@ public class GS_arm extends LinearOpMode {
         // Setting Motor speed/power to 60%
         double speed = 0.6;
 
+        headout.setState(false); // Set Output Pin Low
+
         //While the code is running
         while (opModeIsActive()) {
             // Prints the inital outputs of current to the app screen
@@ -165,7 +167,7 @@ public class GS_arm extends LinearOpMode {
             s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             s_arm.setPower(Math.abs(0.2));
 
-            //when the touch sensor is pushed
+            //when the touch sensor is pushed or Input pin high when no obstacles closer than 50cm
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50 || headin.getState()==false && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
 
 
@@ -185,6 +187,7 @@ public class GS_arm extends LinearOpMode {
                 while (u_arm.isBusy() && opModeIsActive()) {
                     if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -204,6 +207,7 @@ public class GS_arm extends LinearOpMode {
                 while (l_arm.isBusy() && opModeIsActive()) {
                     if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -231,6 +235,7 @@ public class GS_arm extends LinearOpMode {
                 while (s_arm.isBusy() && opModeIsActive()) {
                     if (s_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -246,6 +251,7 @@ public class GS_arm extends LinearOpMode {
                     u_arm1.setCurrentAlert(10, CurrentUnit.AMPS);
                     if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -271,6 +277,7 @@ public class GS_arm extends LinearOpMode {
                 while (s_arm.isBusy() && opModeIsActive()) {
                     if (s_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -284,6 +291,7 @@ public class GS_arm extends LinearOpMode {
                 while (u_arm.isBusy() && opModeIsActive()) {
                     if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -305,6 +313,7 @@ public class GS_arm extends LinearOpMode {
                 while (l_arm.isBusy() && opModeIsActive()) {
                     if (l_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
@@ -327,6 +336,7 @@ public class GS_arm extends LinearOpMode {
                 while (u_arm.isBusy() && opModeIsActive()) {
                     if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
+                        headout.setState(true);
                         requestOpModeStop();
                     }
                 }
