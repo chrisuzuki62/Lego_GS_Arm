@@ -192,8 +192,6 @@ public class GS_arm extends LinearOpMode {
                     }
                 }
 
-
-
                 //wait 1 sec
                 sleep(1000);
 

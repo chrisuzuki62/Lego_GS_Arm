@@ -180,6 +180,8 @@ public class Precheck extends LinearOpMode {
                     }
                 }
 
+                sleep(1000);
+
                 while (opModeIsActive()) {
 
                     if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
@@ -196,21 +198,24 @@ public class Precheck extends LinearOpMode {
                                 requestOpModeStop();
                             }
                         }
-                    }
-                    while (opModeIsActive()) {
-                        if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
-                            //The shoulder
-                            news_armTarget = s_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
-                            s_arm.setTargetPosition(news_armTarget);
-                            s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                            s_arm.setPower(Math.abs(0.2));
+                        sleep(1000);
+                        while (opModeIsActive()) {
+                            if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+                                //The shoulder
+                                news_armTarget = s_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
+                                s_arm.setTargetPosition(news_armTarget);
+                                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                                s_arm.setPower(Math.abs(0.2));
 
-                            // Saftey System for Phase three
-                            while (s_arm.isBusy() && opModeIsActive()) {
-                                if (s_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
-                                    s_arm1.setMotorDisable();
-                                    requestOpModeStop();
+                                // Saftey System for Phase three
+                                while (s_arm.isBusy() && opModeIsActive()) {
+                                    if (s_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                                        s_arm1.setMotorDisable();
+                                        requestOpModeStop();
+                                    }
                                 }
+                                sleep(5000);
+                                requestOpModeStop();
                             }
                         }
                     }
