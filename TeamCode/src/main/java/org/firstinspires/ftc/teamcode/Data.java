@@ -58,7 +58,7 @@ import org.openftc.revextensions2.ExpansionHubMotor;
 public class Data extends LinearOpMode {
 
     static final double     COUNTS_PER_MOTOR_REV    = 28 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 60.0 ;     // This is < 1.0 if geared UP
+    static final double     DRIVE_GEAR_REDUCTION    = 100.0 ;     // This is < 1.0 if geared UP
     static final double     COUNTS_PER_DEGREE         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
     DcMotor l_arm = null;
     DcMotor u_arm = null;
@@ -131,12 +131,12 @@ public class Data extends LinearOpMode {
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                 //Phase One rotate upper arm out with lower arm locked
 
-                newu_armTarget = s_arm.getCurrentPosition() + (int) (-90 * COUNTS_PER_DEGREE);
-                s_arm.setTargetPosition(newu_armTarget);
-                s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(speed));
-                while(s_arm.isBusy() && opModeIsActive()) {
-                    if (s_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                newl_armTarget = l_arm.getCurrentPosition() + (int) ((90*3/5) * COUNTS_PER_DEGREE);
+                l_arm.setTargetPosition(newl_armTarget);
+                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                l_arm.setPower(Math.abs(speed));
+                while(l_arm.isBusy() && opModeIsActive()) {
+                    if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         runtime.reset();
                         s_arm1.setMotorDisable();
                         headout.setState(false);
