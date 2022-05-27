@@ -71,7 +71,7 @@ public class Precheck extends LinearOpMode {
 
     //Values that converts encoder ticks to degrees
     static final double COUNTS_PER_MOTOR_REV = 28;    // eg: TETRIX Motor Encoder
-    static final double DRIVE_GEAR_REDUCTION = 60.0;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 100.0;     // This is < 1.0 if geared UP
     static final double COUNTS_PER_DEGREE = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
     // names the Motors, Servos, and Sensors
     DcMotor l_arm = null;
@@ -80,6 +80,7 @@ public class Precheck extends LinearOpMode {
     Servo hand = null;
     TouchSensor touch;
     DistanceSensor sensorRange1;
+    DistanceSensor sensorRange2;
     DigitalChannel headin;
     DigitalChannel headout;
 
@@ -122,6 +123,7 @@ public class Precheck extends LinearOpMode {
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
         DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
         sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
+        sensorRange2 = hardwareMap.get(DistanceSensor.class, "range2");
 
         // Setting Safety limits on Motors
         /* l_arm > 3.5 AMPS    u_arm > 6.5 AMPS    s_arm  > 4.5 */
@@ -141,11 +143,17 @@ public class Precheck extends LinearOpMode {
         //While the code is running
         while (opModeIsActive()) {
             // Prints the inital outputs of current to the app screen
-            if (sensorRange1.getDistance(DistanceUnit.CM) > 50) {
+            if (sensorRange1.getDistance(DistanceUnit.CM) > 50 && sensorRange2.getDistance(DistanceUnit.CM) > 50) {
                 telemetry.addData("Clear to RUN", 0);
-            } else
-                telemetry.addData("Obstruction Detected", 1);
+            }
+            if (sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                telemetry.addData("Obstruction Detected on the Side", 1);
+            }
+            if (sensorRange2.getDistance(DistanceUnit.CM) < 50) {
+                telemetry.addData("Obstruction Detected on the Front", 1);
+            }
             telemetry.update();
+
 
             //Reset Arm Position
             newl_armTarget = 0;
@@ -168,7 +176,7 @@ public class Precheck extends LinearOpMode {
 
 
                 //The lower arm direction test
-                newl_armTarget = l_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
+                newl_armTarget = l_arm.getCurrentPosition() + (int) ((-30*3/5) * COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));

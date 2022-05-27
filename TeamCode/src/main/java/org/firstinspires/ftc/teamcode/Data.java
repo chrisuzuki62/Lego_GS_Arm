@@ -128,31 +128,13 @@ public class Data extends LinearOpMode {
             headout.setState(true); // High Output
 
             double speed = 0.4;
+
+            hand.setPosition(0.5);
+
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
                 //Phase One rotate upper arm out with lower arm locked
 
-                newl_armTarget = l_arm.getCurrentPosition() + (int) ((90*3/5) * COUNTS_PER_DEGREE);
-                l_arm.setTargetPosition(newl_armTarget);
-                l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                l_arm.setPower(Math.abs(speed));
-                while(l_arm.isBusy() && opModeIsActive()) {
-                    if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
-                        runtime.reset();
-                        s_arm1.setMotorDisable();
-                        headout.setState(false);
-                        telemetry.addData("milliseconds", runtime.milliseconds());
-                        telemetry.update();
-                    }
-                }
-
-
-                telemetry.addData("u_arm Current", u_arm1.getCurrent(CurrentUnit.AMPS));
-                telemetry.update();
-
-                sleep(1000);
-
-                //Test code for Motor resistance safety system
-                //goal is to shut off arm power once current is above set limit
+                hand.setPosition(1.0);
 
                 sleep(10000);
             }
