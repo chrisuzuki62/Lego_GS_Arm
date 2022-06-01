@@ -125,7 +125,7 @@ public class Data extends LinearOpMode {
             s_arm.setPower(0);
 
             headin.setState(true); // Low input
-            headout.setState(true); // High Output
+            headout.setState(false); // Low Output
 
             double speed = 0.4;
 

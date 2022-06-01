@@ -42,7 +42,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
- * This file will be needed to be run beofre the acutally running the GS arm code for the Interactive Lego Girl Scout Robot Arm
+ * Written by Chris Suzuki
+ * This file will be needed to be run beforee the acutally running the GS arm code for the Interactive Lego Girl Scout Robot Arm
  *
  * The code REQUIRES that you DO have encoders on the motors that are 28 tick
  *
@@ -73,6 +74,7 @@ public class Precheck extends LinearOpMode {
     static final double COUNTS_PER_MOTOR_REV = 28;    // eg: TETRIX Motor Encoder
     static final double DRIVE_GEAR_REDUCTION = 100.0;     // This is < 1.0 if geared UP
     static final double COUNTS_PER_DEGREE = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
+
     // names the Motors, Servos, and Sensors
     DcMotor l_arm = null;
     DcMotor u_arm = null;
@@ -142,7 +144,7 @@ public class Precheck extends LinearOpMode {
 
         //While the code is running
         while (opModeIsActive()) {
-            // Prints the inital outputs of current to the app screen
+            // Prints the initial outputs of obstacle conditions
             if (sensorRange1.getDistance(DistanceUnit.CM) > 50 && sensorRange2.getDistance(DistanceUnit.CM) > 50) {
                 telemetry.addData("Clear to RUN", 0);
             }
@@ -175,31 +177,35 @@ public class Precheck extends LinearOpMode {
             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
 
 
-                //The lower arm direction test
+                //The lower arm moves 30 degrees
                 newl_armTarget = l_arm.getCurrentPosition() + (int) ((-30*3/5) * COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
-                while (u_arm.isBusy() && opModeIsActive()) {
-                    if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
-                        u_arm1.setMotorDisable();
+                // Safety System of lower arm
+                while (l_arm.isBusy() && opModeIsActive()) {
+                    if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                        l_arm1.setMotorDisable();
                         requestOpModeStop();
                     }
                 }
 
+                // wait 1 sec
                 sleep(1000);
 
                 while (opModeIsActive()) {
 
+                    // when touch is pushed
                     if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
-                        //The upper arm direction test
+
+                        //The upper arm moves 30 degrees
                         newu_armTarget = u_arm.getCurrentPosition() + (int) (-30 * COUNTS_PER_DEGREE);
                         u_arm.setTargetPosition(newu_armTarget);
                         u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                         u_arm.setPower(Math.abs(speed));
 
-                        // Saftey System for Phase one
+                        // Saftey System for upper arm
                         while (u_arm.isBusy() && opModeIsActive()) {
                             if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                                 u_arm1.setMotorDisable();
@@ -208,21 +214,25 @@ public class Precheck extends LinearOpMode {
                         }
                         sleep(1000);
                         while (opModeIsActive()) {
+                            // when touch is pushed
                             if (touch.isPressed() == true && sensorRange1.getDistance(DistanceUnit.CM) > 50) {
-                                //The shoulder
+
+                                // Move shoulder 30 degrees
                                 news_armTarget = s_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
                                 s_arm.setTargetPosition(news_armTarget);
                                 s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                                 s_arm.setPower(Math.abs(0.2));
 
-                                // Saftey System for Phase three
+                                // Safety System for shoulder
                                 while (s_arm.isBusy() && opModeIsActive()) {
-                                    if (s_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
+                                    if (s_arm1.isOverCurrent() == true || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                                         s_arm1.setMotorDisable();
                                         requestOpModeStop();
                                     }
                                 }
+                                // hold for 5 sec
                                 sleep(5000);
+                                // shutoff system
                                 requestOpModeStop();
                             }
                         }

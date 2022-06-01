@@ -44,9 +44,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
+ * Written by Chris Suzuki
  * This file will drive the entire Interactive Lego Girl Scout Robot Arm
  *
  * The code REQUIRES that you DO have encoders on the motors that are 28 tick
+ * and gear boxes attached as follows l_arm:3,4,5  u_arm:4,5,5  s_arm:4,5,5
  *
  *   The motors, servos, sensors should be configured as the following
  *   Motors
@@ -59,11 +61,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  *
  *   Sensors(digital)
  *   Port 0 touch
+ *   Port 2 headin
+ *   Port 4 headout
  *
  *   Sensors(I2C)
  *   Port 0 range1
  *   Port 1 range2
- *   Port 3 range3
  *
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
@@ -77,7 +80,7 @@ public class GS_arm extends LinearOpMode {
     static final double COUNTS_PER_MOTOR_REV = 28;    // eg: TETRIX Motor Encoder
     static final double DRIVE_GEAR_REDUCTION = 100.0;     // This is < 1.0 if geared UP
     static final double COUNTS_PER_DEGREE = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (360);
-    // names the Motors, Servos, and Sensors
+    // names the Motors, Servos, Sensors, and Pins
     DcMotor l_arm = null;
     DcMotor u_arm = null;
     DcMotor s_arm = null;
@@ -89,11 +92,11 @@ public class GS_arm extends LinearOpMode {
     DigitalChannel headout;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() { //Main Code
 
 
         // Initialize and Reset the Encoders.
-        telemetry.addData("Status", "Resetting Encoders");    //
+        telemetry.addData("Status", "Resetting Encoders");
         telemetry.update();
 
         // Mapping the hardware component names to the name used in the code
@@ -106,6 +109,7 @@ public class GS_arm extends LinearOpMode {
         headout = hardwareMap.digitalChannel.get("headout");
 
         // Setting the mode on each hardware device
+        // Motors
         l_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         u_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         s_arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -114,6 +118,7 @@ public class GS_arm extends LinearOpMode {
         u_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         s_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        // Digital Pins
         headin.setMode(DigitalChannel.Mode.INPUT);
         headout.setMode(DigitalChannel.Mode.OUTPUT);
 
@@ -126,11 +131,13 @@ public class GS_arm extends LinearOpMode {
         DcMotorEx l_arm1 = hardwareMap.get(DcMotorEx.class, "l_arm");
         DcMotorEx u_arm1 = hardwareMap.get(DcMotorEx.class, "u_arm");
         DcMotorEx s_arm1 = hardwareMap.get(DcMotorEx.class, "s_arm");
+
+        // Defining the REV 2M Distance Sensors
         sensorRange1 = hardwareMap.get(DistanceSensor.class, "range1");
         sensorRange2 = hardwareMap.get(DistanceSensor.class, "range2");
 
         // Setting Safety limits on Motors
-        /* l_arm > 3.5 AMPS    u_arm > 6.5 AMPS    s_arm  > 4.5 */
+        /* l_arm > 3.5 AMPS    u_arm > 7.5 AMPS    s_arm  > 5.5 */
         l_arm1.setCurrentAlert(3.5, CurrentUnit.AMPS);
         u_arm1.setCurrentAlert(7.5, CurrentUnit.AMPS);
         s_arm1.setCurrentAlert(5.5, CurrentUnit.AMPS);
@@ -148,7 +155,7 @@ public class GS_arm extends LinearOpMode {
 
         //While the code is running
         while (opModeIsActive()) {
-            // Prints the inital outputs of current to the app screen
+            // Prints the initial Obstruction condition of the robot arm.
             if (sensorRange1.getDistance(DistanceUnit.CM) > 50 && sensorRange2.getDistance(DistanceUnit.CM) > 50) {
                 telemetry.addData("Clear to RUN", 0);
             }
@@ -208,7 +215,7 @@ public class GS_arm extends LinearOpMode {
                 //wait 1 sec
                 sleep(1000);
 
-                //Second Phase bends the lower arm from the elbow downwards
+                //Second Phase bends the lower arm from the elbow downwards 90 degree
                 newl_armTarget = l_arm.getCurrentPosition() + (int) ((90*3/5) *COUNTS_PER_DEGREE);
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -223,24 +230,26 @@ public class GS_arm extends LinearOpMode {
                     }
                 }
 
-                sleep(1000);   // optional pause after each move
+                //wait 1 sec
+                sleep(1000);
 
-                // hold this new position
+                // hold this new position for lower arm
                 newl_armTarget = l_arm.getCurrentPosition();
                 l_arm.setTargetPosition(newl_armTarget);
                 l_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 l_arm.setPower(Math.abs(speed));
 
+                // hold this new position for upper arm
                 newu_armTarget = u_arm.getCurrentPosition();
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 u_arm.setPower(Math.abs(speed));
 
                 //Third Phase rotates the shoulder 180 degrees
-                news_armTarget = s_arm.getCurrentPosition() + (int) (170 * COUNTS_PER_DEGREE);
+                news_armTarget = s_arm.getCurrentPosition() + (int) (180 * COUNTS_PER_DEGREE);
                 s_arm.setTargetPosition(news_armTarget);
                 s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(0.2));
+                s_arm.setPower(Math.abs(0.15));
 
                 // Saftey System for Phase three
                 while (s_arm.isBusy() && opModeIsActive()) {
@@ -250,12 +259,13 @@ public class GS_arm extends LinearOpMode {
                         requestOpModeStop();
                     }
                 }
+                // pushes the upper arm an extra 30 degrees
                 newu_armTarget = u_arm.getCurrentPosition() + (int) (30 * COUNTS_PER_DEGREE);
                 u_arm.setTargetPosition(newu_armTarget);
                 u_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                u_arm.setPower(Math.abs(0.3));
+                u_arm.setPower(Math.abs(0.2));
 
-                // Saftey System for Phase one
+                // Saftey System for the extra push
                 while (u_arm.isBusy() && opModeIsActive()) {
                     if (u_arm1.isOverCurrent() == true || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
@@ -263,21 +273,24 @@ public class GS_arm extends LinearOpMode {
                         requestOpModeStop();
                     }
                 }
-                sleep(1000);   // optional pause after each move
+
+                //wait 1 sec
+                sleep(1000);
 
                 // makes GS hand sign
                 hand.setPosition(1.0);
 
+                // hold position for 5 sec
                 sleep(5000);
 
                 // resets hand
                 hand.setPosition(0.5);
 
                 //Undoes Third Phase
-                news_armTarget = s_arm.getCurrentPosition() + (int) (-170 * COUNTS_PER_DEGREE);
+                news_armTarget = s_arm.getCurrentPosition() + (int) (-180 * COUNTS_PER_DEGREE);
                 s_arm.setTargetPosition(news_armTarget);
                 s_arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                s_arm.setPower(Math.abs(0.2));
+                s_arm.setPower(Math.abs(0.15));
 
                 // Saftey System for Phase three
                 while (s_arm.isBusy() && opModeIsActive()) {
@@ -288,7 +301,8 @@ public class GS_arm extends LinearOpMode {
                     }
                 }
 
-                sleep(1000);   // optional pause after each move
+                //wait 1 sec
+                sleep(1000);
 
                 //Undoes Phase two
                 newu_armTarget = u_arm.getCurrentPosition();
@@ -310,7 +324,8 @@ public class GS_arm extends LinearOpMode {
                     }
                 }
 
-                sleep(1000);   // optional pause after each move
+                //wait 1 sec
+                sleep(1000);
 
                 // Undoes Phase one
                 newl_armTarget = l_arm.getCurrentPosition();
