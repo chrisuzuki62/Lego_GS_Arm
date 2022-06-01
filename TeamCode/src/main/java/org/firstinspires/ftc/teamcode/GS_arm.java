@@ -202,6 +202,7 @@ public class GS_arm extends LinearOpMode {
                     if (u_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50 || sensorRange2.getDistance(DistanceUnit.CM) < 50 ) {
                         u_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -226,6 +227,7 @@ public class GS_arm extends LinearOpMode {
                     if (l_arm1.isOverCurrent() == true || sensorRange1.getDistance(DistanceUnit.CM) < 50 || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -256,6 +258,7 @@ public class GS_arm extends LinearOpMode {
                     if (s_arm1.isOverCurrent() == true  || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -270,6 +273,7 @@ public class GS_arm extends LinearOpMode {
                     if (u_arm1.isOverCurrent() == true || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -297,6 +301,7 @@ public class GS_arm extends LinearOpMode {
                     if (s_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50) {
                         s_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -320,6 +325,7 @@ public class GS_arm extends LinearOpMode {
                     if (l_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50 || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         l_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
@@ -344,6 +350,7 @@ public class GS_arm extends LinearOpMode {
                     if (u_arm1.isOverCurrent() == true  || sensorRange1.getDistance(DistanceUnit.CM) < 50 || sensorRange2.getDistance(DistanceUnit.CM) < 50) {
                         u_arm1.setMotorDisable();
                         headout.setState(true);
+                        sleep(1000);
                         requestOpModeStop();
                     }
                 }
